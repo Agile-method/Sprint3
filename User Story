@@ -134,3 +134,102 @@ def test_unique_name_and_birth_date():
         name_and_birth = (data['name'], data['birthday'])
         self.assertNotIn(name_and_birth, name_and_birth_dates)
         name_and_birth_dates.add(name_and_birth)
+
+# User Story US24: Unique families by spouses
+def test_unique_families_by_spouses():
+    spouse_pairs = set()
+    for identifier, data in families.items():
+        spouses = (data['husband_id'], data['wife_id'])
+        self.assertNotIn(spouses, spouse_pairs)
+        spouse_pairs.add(spouses)
+
+# User Story US25: Unique first names in families
+def test_unique_first_names_in_families():
+    for identifier, data in families.items():
+        first_names = set()
+        husband_name = data['husband_name'].split()[0]
+        wife_name = data['wife_name'].split()[0]
+        first_names.add(husband_name)
+        first_names.add(wife_name)
+        for child_id in data['children']:
+            child_name = individuals[child_id]['name'].split()[0]
+            self.assertNotIn(child_name, first_names)
+            first_names.add(child_name)
+
+individual_table = PrettyTable()
+individual_table.field_names = ["Identifier", "Name", "Gender", "Birthday", "Age", "Alive", "Death", "Child", "Spouse"]
+
+for identifier, data in sorted(individuals.items(), key=lambda x: int(x[0])):
+    individual_table.add_row([
+        data['identifier'],
+        data['name'],
+        data['gender'],
+        data['birthday'],
+        data['age'],
+        "Yes" if data['alive'] else "No",
+        data['death'] if not data['alive'] else "",
+        ", ".join(data['child']),
+        ", ".join(data['spouse'])
+    ])
+
+family_table = PrettyTable()
+family_table.field_names = ["Family Identifier", "Married", "Divorced", "Husband ID", "Husband Name", "Wife ID",
+                            "Wife Name", "Children"]
+
+for identifier, data in sorted(families.items(), key=lambda x: int(x[0])):
+    family_table.add_row([
+        data['identifier'],
+        data['marriage_date'],
+        data['divorce_date'],
+        data['husband_id'],
+        data['husband_name'],
+        data['wife_id'],
+        data['wife_name'],
+        ", ".join(data['children'])
+    ])
+
+print("Individuals Table:")
+print(individual_table)
+
+print("\nFamilies Table:")
+print(family_table)
+
+# Run the tests
+class TestGedcomParser(unittest.TestCase):
+    def test_unique_ids(self):
+        all_ids = set()
+        for identifier in individuals:
+            self.assertNotIn(identifier, all_ids)
+            all_ids.add(identifier)
+        for identifier in families:
+            self.assertNotIn(identifier, all_ids)
+            all_ids.add(identifier)
+
+    def test_unique_name_and_birth_date(self):
+        name_and_birth_dates = set()
+        for identifier, data in individuals.items():
+            name_and_birth = (data['name'], data['birthday'])
+            self.assertNotIn(name_and_birth, name_and_birth_dates)
+            name_and_birth_dates.add(name_and_birth)
+
+    def test_unique_families_by_spouses(self):
+        spouse_pairs = set()
+        for identifier, data in families.items():
+            spouses = (data['husband_id'], data['wife_id'])
+            self.assertNotIn(spouses, spouse_pairs)
+            spouse_pairs.add(spouses)
+
+    def test_unique_first_names_in_families(self):
+        for identifier, data in families.items():
+            first_names = set()
+            husband_name = data['husband_name'].split()[0]
+            wife_name = data['wife_name'].split()[0]
+            first_names.add(husband_name)
+            first_names.add(wife_name)
+            for child_id in data['children']:
+                child_name = individuals[child_id]['name'].split()[0]
+                self.assertNotIn(child_name, first_names)
+                first_names.add(child_name)
+
+if _name_ == '__main':
+    unittest.main()
